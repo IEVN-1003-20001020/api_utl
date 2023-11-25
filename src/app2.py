@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify,request
 from flask_mysqldb import MySQL
 from config import config
 
@@ -57,6 +57,82 @@ def leer_alumno(mat):
              
     except Exception as ex:
              return jsonify({'mensaje':'{}'.format(ex),'exito':False})
+    
+
+
+@app.route('/alumnos',methods=['POST'])
+def registrar_alumno():
+    try:
+        alumno= leer_alumno_bd(request.json['matricula'])
+
+
+        if alumno != None:
+            return jsonify({'mensaje':'alumno existe','exito':False})
+        else:
+            cursor=con.connection.cursor()
+            sql="INSERT INTO alumnos(matricula,nombre,apaterno,amaterno,correo) VALUES ({0},'{1}','{2}','{3}','{4}')""".format(request.json['matricula'],
+            request.json['nombre'],request.json['apaterno'],request.json['amaterno'],request.json['correo'])
+            cursor.execute(sql)
+            con.connection.commit()
+            return jsonify({'mensaje':'Alumno registrado','exito':True})
+    except Exception as ex:
+             return jsonify({'mensaje':'{}'.format(ex)})
+    
+
+
+
+
+@app.route('/alumnos/<mat>', methods=['PUT'])
+def actualiza_alumno(mat):
+    try:
+        alumno= leer_alumno_bd(mat)
+
+
+        if alumno != None:
+            #return jsonify({'mensaje':'alumno existe','exito':False})
+            cursor=con.connection.cursor()
+            sql="""UPDATE alumnos SET nombre='{0}',apaterno='{1}',amaterno='{2}',
+            correo='{3}' where matricula={4}""".format(
+            request.json['nombre'],request.json['apaterno'],request.json['amaterno'],
+            request.json['correo'],mat)
+            cursor.execute(sql)
+            con.connection.commit()
+            return jsonify({'mensaje':'Alumno Actualizado','exito':True})
+        
+        else:
+             return jsonify({'mensaje':'Alumno existe','exito':False})
+        
+    except Exception as ex:
+             return jsonify({'mensaje':'{}'.format(ex)})
+    
+
+
+@app.route('/alumnos/<mat>', methods=['DELETE'])
+def eliminar_alumno(mat):
+    try:
+        alumno= leer_alumno_bd(mat)
+
+
+        if alumno != None:
+
+            cursor=con.connection.cursor()
+            sql='DELETE FROM alumnos WHERE matricula={0}'.format(mat)
+            cursor.execute(sql)
+            con.connection.commit()
+            return jsonify({'mensaje':'Alumno Eliminado','exito':True})
+        
+        else:
+             return jsonify({'mensaje':'Alumno no existe','exito':False})
+        
+    except Exception as ex:
+             return jsonify({'mensaje':'{}'.format(ex)})
+
+
+        
+    
+    
+
+
 
 
 def pagina_no_encontrada(error):
